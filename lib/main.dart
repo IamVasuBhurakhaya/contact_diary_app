@@ -1,49 +1,29 @@
-import 'package:contact_diary_app/utils/app_Theme.dart';
+import 'package:contact_diary_app/routes/app_routes.dart';
+import 'package:contact_diary_app/views/homeScreen/provider/home_screen_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:day_night_themed_switcher/day_night_themed_switcher.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    MyApp(),
+  );
 }
 
-class MyApp extends StatefulWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State<MyApp> {
-  ThemeMode _themeMode = ThemeMode.light; // Default is light mode
-
-  @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      // routes: AppRoutes.routes,
-      theme: AppTheme.lightTheme,
-      darkTheme: ThemeData.dark(),
-      themeMode: _themeMode,
-      home: Scaffold(
-        appBar: AppBar(
-          title: const Text('Day Night Theme Switcher'),
-        ),
-        body: Center(
-          child: themeSwitch(),
-        ),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: HomeProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        routes: AppRoutes.routes,
+        darkTheme: ThemeData.dark(),
+        theme: ThemeData.light(),
       ),
-    );
-  }
-
-  Widget themeSwitch() {
-    return DayNightSwitch(
-      duration: const Duration(seconds: 2),
-      size: 80,
-      onChange: (dark) {
-        setState(() {
-          _themeMode = dark ? ThemeMode.dark : ThemeMode.light;
-        });
-      },
     );
   }
 }
