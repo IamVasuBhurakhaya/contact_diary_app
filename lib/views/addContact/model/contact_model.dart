@@ -1,5 +1,6 @@
 class ContactModel {
-  String? imagePath, name, mobile, email;
+  String? name, mobile, email, image;
+  bool? ishide;
 
-  ContactModel({this.imagePath, this.name, this.mobile, this.email});
+  ContactModel({this.name, this.mobile, this.email, this.image, this.ishide});
 }

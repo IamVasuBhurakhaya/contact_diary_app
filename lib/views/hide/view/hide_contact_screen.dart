@@ -6,26 +6,23 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class Homepage extends StatefulWidget {
-  const Homepage({super.key});
+class HideContactScreen extends StatefulWidget {
+  const HideContactScreen({super.key});
 
   @override
-  State<Homepage> createState() => _HomepageState();
+  State<HideContactScreen> createState() => _HideContactScreenState();
 }
 
-class _HomepageState extends State<Homepage> {
+class _HideContactScreenState extends State<HideContactScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Homepage'),
-        actions: [
-          IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.hideContactScreen);
-              },
-              icon: const Icon(Icons.lock))
-        ],
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back_ios),
+        ),
+        title: const Text('Hide Contact'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -35,14 +32,11 @@ class _HomepageState extends State<Homepage> {
             return Visibility(
               visible:
                   context.watch<HomeProvider>().ContactList[index].ishide ==
-                      false,
+                      true,
               child: ListTile(
                 onLongPress: () =>
                     context.read<HomeProvider>().removeDetails(index),
                 onTap: () {
-                  context.read<HomeProvider>().changeIndex(index);
-                  print(
-                      "Index : ${context.read<HomeProvider>().selectedIndex}");
                   Navigator.pushNamed(context, AppRoutes.detailscreen,
                       arguments:
                           context.read<HomeProvider>().ContactList[index]);
@@ -68,20 +62,14 @@ class _HomepageState extends State<Homepage> {
                     ),
                   ),
                 ),
-                title: Text(context
-                    .watch<HomeProvider>()
-                    .ContactList[index]
-                    .name
-                    .toString()),
-                subtitle: Text(context
-                    .watch<HomeProvider>()
-                    .ContactList[index]
-                    .mobile
-                    .toString()),
+                title:
+                    Text(context.read<HomeProvider>().ContactList[index].name!),
+                subtitle: Text(
+                    context.read<HomeProvider>().ContactList[index].mobile!),
                 trailing: IconButton(
                     onPressed: () async {
                       await launchUrl(
-                          "tel:${context.watch<HomeProvider>().ContactList[index].mobile}"
+                          "tel:${context.read<HomeProvider>().ContactList[index].mobile}"
                               as Uri);
                     },
                     icon: const Icon(Icons.phone)),
@@ -89,12 +77,6 @@ class _HomepageState extends State<Homepage> {
             );
           },
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, AppRoutes.addcontact);
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }

@@ -7,14 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-class ContactPage extends StatefulWidget {
-  const ContactPage({super.key});
+class ContactScreen extends StatefulWidget {
+  const ContactScreen({super.key});
 
   @override
-  State<ContactPage> createState() => _ContactPageState();
+  State<ContactScreen> createState() => _ContactScreenState();
 }
 
-class _ContactPageState extends State<ContactPage> {
+class _ContactScreenState extends State<ContactScreen> {
   int stepIndex = 0;
   String? path;
   TextEditingController nameController = TextEditingController();
@@ -27,162 +27,145 @@ class _ContactPageState extends State<ContactPage> {
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(CupertinoIcons.back),
-        ),
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(CupertinoIcons.back)),
         title: const Text('Add Contact'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
-          child: Form(
-            key: formKey,
-            child: Stepper(
-              elevation: 0,
-              currentStep: stepIndex,
-              onStepContinue: () {
-                if (stepIndex < 4) {
-                  setState(() {
-                    stepIndex++;
-                  });
-                }
-              },
-              onStepCancel: () {
-                if (stepIndex > 0) {
-                  setState(() {
-                    stepIndex--;
-                  });
-                }
-              },
-              steps: [
-                Step(
-                  title: const Text('Photo'),
-                  content: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ClipOval(
-                        child: path == null
-                            ? const CircleAvatar(
-                                radius: 60,
-                                child: Icon(Icons.person, size: 60),
-                                backgroundColor: Colors.grey,
-                              )
-                            : CircleAvatar(
-                                radius: 60,
-                                backgroundImage: FileImage(File(path!)),
-                              ),
+          scrollDirection: Axis.vertical,
+          child: Column(
+            children: [
+              Form(
+                key: formKey,
+                child: Stepper(
+                  onStepContinue: () {
+                    setState(() {
+                      if (stepIndex < 4) {
+                        stepIndex++;
+                      }
+                    });
+                  },
+                  onStepCancel: () {
+                    setState(() {
+                      if (stepIndex > 0) {
+                        stepIndex--;
+                      }
+                    });
+                  },
+                  currentStep: stepIndex,
+                  steps: [
+                    Step(
+                      title: const Text('Photo'),
+                      content: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          path == null
+                              ? const CircleAvatar(
+                                  radius: 60,
+                                  child: Icon(Icons.person),
+                                )
+                              : CircleAvatar(
+                                  radius: 60,
+                                  backgroundImage: FileImage(File(path!)),
+                                ),
+                          ElevatedButton(
+                            onPressed: () async {
+                              ImagePicker imagePicker = ImagePicker();
+                              XFile? image = await imagePicker.pickImage(
+                                  source: ImageSource.gallery);
+                              path = image!.path;
+                              setState(() {});
+                            },
+                            child: const Text('Add Photo'),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () async {
-                          final imagePicker = ImagePicker();
-                          final XFile? image = await imagePicker.pickImage(
-                              source: ImageSource.gallery);
-                          if (image != null) {
-                            setState(() {
-                              path = image.path;
-                            });
+                    ),
+                    Step(
+                      title: const Text('Name'),
+                      content: TextFormField(
+                        controller: nameController,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please Enter Name';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                            hintText: 'Name', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    Step(
+                      title: const Text('Number'),
+                      content: TextFormField(
+                        controller: numberController,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please Enter Number';
+                          } else if (value.length < 10) {
+                            return 'Number Must Be 10 Digit';
+                          }
+                          return null;
+                        },
+                        maxLength: 10,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly
+                        ],
+                        decoration: const InputDecoration(
+                            hintText: 'Number', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    Step(
+                      title: const Text('Email'),
+                      content: TextFormField(
+                        controller: emailController,
+                        validator: (value) {
+                          if (value!.isEmpty) {
+                            return 'Please Enter Email';
+                          }
+                          return null;
+                        },
+                        decoration: const InputDecoration(
+                            hintText: 'Email', border: OutlineInputBorder()),
+                      ),
+                    ),
+                    Step(
+                      title: const Text('Save'),
+                      content: ElevatedButton(
+                        onPressed: () {
+                          bool isvalid = formKey.currentState!.validate();
+                          if (isvalid) {
+                            String name = nameController.text;
+                            String number = numberController.text;
+                            String email = emailController.text;
+
+                            ContactModel details = ContactModel(
+                              name: name,
+                              mobile: number,
+                              email: email,
+                              image: path,
+                              ishide: false,
+                            );
+                            context.read<HomeProvider>().addDetails(details);
+                            Navigator.pop(context);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Please Fill All Fields'),
+                              ),
+                            );
                           }
                         },
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child: const Text('Add Photo'),
+                        child: const Text('Save'),
                       ),
-                    ],
-                  ),
-                ),
-                Step(
-                  title: const Text('Name'),
-                  content: TextFormField(
-                    controller: nameController,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Please Enter Name';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Name',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
                     ),
-                  ),
+                  ],
                 ),
-                Step(
-                  title: const Text('Number'),
-                  content: TextFormField(
-                    controller: numberController,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Please Enter Number';
-                      } else if (value.length < 10) {
-                        return 'Number Must Be 10 Digits';
-                      }
-                      return null;
-                    },
-                    maxLength: 10,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(
-                      hintText: 'Number',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                ),
-                Step(
-                  title: const Text('Email'),
-                  content: TextFormField(
-                    controller: emailController,
-                    validator: (value) {
-                      if (value!.isEmpty) {
-                        return 'Please Enter Email';
-                      }
-                      return null;
-                    },
-                    decoration: const InputDecoration(
-                      hintText: 'Email',
-                      border: OutlineInputBorder(),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                  ),
-                ),
-                Step(
-                  title: const Text('Save'),
-                  content: ElevatedButton(
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        final contactDetails = ContactModel(
-                          name: nameController.text,
-                          mobile: numberController.text,
-                          email: emailController.text,
-                          imagePath: path,
-                        );
-                        context.read<HomeProvider>().addDetails(contactDetails);
-                        Navigator.pop(context);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Please Fill All Fields'),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: const Text('Save'),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
