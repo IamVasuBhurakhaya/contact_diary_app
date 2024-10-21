@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    MyApp(),
+    const MyApp(),
   );
 }
 
@@ -16,13 +16,21 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider.value(value: HomeProvider()),
+        ChangeNotifierProvider.value(
+          value: HomeProvider(),
+        ),
       ],
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        routes: AppRoutes.routes,
-        darkTheme: ThemeData.dark(),
-        theme: ThemeData.light(),
+      child: Consumer<HomeProvider>(
+        builder: (context, homeProvider, child) {
+          return MaterialApp(
+            debugShowCheckedModeBanner: false,
+            routes: AppRoutes.routes,
+            darkTheme: ThemeData.dark(),
+            theme: ThemeData.light(),
+            themeMode:
+                homeProvider.isDarkTheme ? ThemeMode.dark : ThemeMode.light,
+          );
+        },
       ),
     );
   }

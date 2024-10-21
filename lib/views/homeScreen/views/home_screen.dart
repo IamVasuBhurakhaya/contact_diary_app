@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:contact_diary_app/routes/app_routes.dart';
 import 'package:contact_diary_app/views/homeScreen/provider/home_screen_provider.dart';
+import 'package:day_night_themed_switcher/day_night_themed_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,73 +19,92 @@ class _HomepageState extends State<Homepage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Homepage'),
+        title: const Text('Contacts'),
         actions: [
           IconButton(
-              onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.hideContactScreen);
-              },
-              icon: const Icon(Icons.lock))
+            icon: const Icon(Icons.lock),
+            onPressed: () {
+              Navigator.pushNamed(context, AppRoutes.hideContactScreen);
+            },
+          ),
+          const SizedBox(width: 10),
+          DayNightSwitch(
+            size: 30,
+            initiallyDark: context.watch<HomeProvider>().isDarkTheme,
+            onChange: (dark) {
+              context.read<HomeProvider>().toggleTheme();
+            },
+          ),
+          const SizedBox(width: 16),
         ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            childAspectRatio: 0.8,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
           itemCount: context.watch<HomeProvider>().ContactList.length,
           itemBuilder: (context, index) {
-            return Visibility(
-              visible:
-                  context.watch<HomeProvider>().ContactList[index].ishide ==
-                      false,
-              child: ListTile(
-                onLongPress: () =>
-                    context.read<HomeProvider>().removeDetails(index),
-                onTap: () {
-                  context.read<HomeProvider>().changeIndex(index);
-                  print(
-                      "Index : ${context.read<HomeProvider>().selectedIndex}");
-                  Navigator.pushNamed(context, AppRoutes.detailscreen,
-                      arguments:
-                          context.read<HomeProvider>().ContactList[index]);
-                },
-                leading: CircleAvatar(
-                  foregroundImage: FileImage(
-                    File(context
-                            .watch<HomeProvider>()
-                            .ContactList[index]
-                            .image ??
-                        ''),
-                  ),
-                  child: Center(
-                    child: Text(
-                      context
-                          .watch<HomeProvider>()
-                          .ContactList[index]
-                          .name![0]
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 20,
-                      ),
-                    ),
-                  ),
+            final contact = context.watch<HomeProvider>().ContactList[index];
+            if (contact.ishide!) return Container(); // Skip hidden contacts
+
+            return GestureDetector(
+              onLongPress: () =>
+                  context.read<HomeProvider>().removeDetails(index),
+              onTap: () {
+                context.read<HomeProvider>().changeIndex(index);
+                Navigator.pushNamed(
+                  context,
+                  AppRoutes.detailscreen,
+                  arguments: contact,
+                );
+              },
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                title: Text(context
-                    .watch<HomeProvider>()
-                    .ContactList[index]
-                    .name
-                    .toString()),
-                subtitle: Text(context
-                    .watch<HomeProvider>()
-                    .ContactList[index]
-                    .mobile
-                    .toString()),
-                trailing: IconButton(
-                    onPressed: () async {
-                      await launchUrl(
-                          "tel:${context.watch<HomeProvider>().ContactList[index].mobile}"
-                              as Uri);
-                    },
-                    icon: const Icon(Icons.phone)),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundImage: contact.image != null
+                          ? FileImage(File(contact.image!))
+                          : null,
+                      child: contact.image == null
+                          ? const Icon(Icons.person, size: 40)
+                          : null,
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      contact.name ?? 'No Name',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      contact.mobile ?? 'No Number',
+                      style: const TextStyle(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 10),
+                    IconButton(
+                      onPressed: () async {
+                        await launchUrl(Uri.parse("tel:${contact.mobile}"));
+                      },
+                      icon: const Icon(Icons.phone),
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ],
+                ),
               ),
             );
           },
